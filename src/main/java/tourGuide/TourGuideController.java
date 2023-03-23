@@ -25,7 +25,7 @@ public class TourGuideController {
         return "Greetings from TourGuide!";
     }
     
-    @RequestMapping("/getLocation") 
+    @RequestMapping("/getLocation")
     public String getLocation(@RequestParam String userName) {
     	VisitedLocation visitedLocation = tourGuideService.getUserLocation(getUser(userName));
 		return JsonStream.serialize(visitedLocation.location);

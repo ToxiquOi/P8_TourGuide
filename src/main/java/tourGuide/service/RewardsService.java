@@ -1,5 +1,6 @@
 package tourGuide.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -37,8 +38,8 @@ public class RewardsService {
 	}
 	
 	public void calculateRewards(User user) {
-		List<VisitedLocation> userLocations = user.getVisitedLocations();
-		List<Attraction> attractions = gpsUtil.getAttractions();
+		List<VisitedLocation> userLocations = new ArrayList<>(user.getVisitedLocations());
+		List<Attraction> attractions = new ArrayList<>(gpsUtil.getAttractions());
 		
 		for(VisitedLocation visitedLocation : userLocations) {
 			for(Attraction attraction : attractions) {
@@ -52,11 +53,11 @@ public class RewardsService {
 	}
 	
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
-		return getDistance(attraction, location) > attractionProximityRange ? false : true;
+		return getDistance(attraction, location) <= attractionProximityRange;
 	}
-	
-	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
-		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
+
+	public boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
+		return getDistance(attraction, visitedLocation.location) <= proximityBuffer;
 	}
 	
 	private int getRewardPoints(Attraction attraction, User user) {
@@ -64,17 +65,17 @@ public class RewardsService {
 	}
 	
 	public double getDistance(Location loc1, Location loc2) {
-        double lat1 = Math.toRadians(loc1.latitude);
-        double lon1 = Math.toRadians(loc1.longitude);
-        double lat2 = Math.toRadians(loc2.latitude);
-        double lon2 = Math.toRadians(loc2.longitude);
+		double lat1 = Math.toRadians(loc1.latitude);
+		double lon1 = Math.toRadians(loc1.longitude);
+		double lat2 = Math.toRadians(loc2.latitude);
+		double lon2 = Math.toRadians(loc2.longitude);
 
-        double angle = Math.acos(Math.sin(lat1) * Math.sin(lat2)
-                               + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2));
+		double angle = Math.acos(Math.sin(lat1) * Math.sin(lat2)
+				+ Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2));
 
-        double nauticalMiles = 60 * Math.toDegrees(angle);
-        double statuteMiles = STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
-        return statuteMiles;
+		double nauticalMiles = 60 * Math.toDegrees(angle);
+		double statuteMiles = STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
+		return statuteMiles;
 	}
 
 }
