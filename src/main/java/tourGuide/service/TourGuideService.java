@@ -3,11 +3,13 @@ package tourGuide.service;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Service;
 
 import gpsUtil.GpsUtil;
@@ -22,8 +24,11 @@ import tripPricer.Provider;
 import tripPricer.TripPricer;
 
 @Service
-public class TourGuideService {
+public class TourGuideService implements DisposableBean {
 	private Logger logger = LoggerFactory.getLogger(TourGuideService.class);
+
+	private final ThreadPoolExecutor executor = new ThreadPoolExecutor(10000, Integer.MAX_VALUE, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+
 	private final GpsUtil gpsUtil;
 	private final RewardsService rewardsService;
 	private final TripPricer tripPricer = new TripPricer();
@@ -49,9 +54,13 @@ public class TourGuideService {
 	}
 	
 	public VisitedLocation getUserLocation(User user) {
-		return (user.getVisitedLocations().size() > 0) ?
-			user.getLastVisitedLocation() :
-			trackUserLocation(user);
+		try {
+			return (user.getVisitedLocations().size() > 0) ?
+				user.getLastVisitedLocation() :
+				trackUserLocation(user).get();
+		} catch (InterruptedException | ExecutionException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public User getUser(String userName) {
@@ -80,11 +89,13 @@ public class TourGuideService {
 		return providers;
 	}
 	
-	public VisitedLocation trackUserLocation(User user) {
-		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
-		user.addToVisitedLocations(visitedLocation);
-		rewardsService.calculateRewards(user);
-		return visitedLocation;
+	public Future<VisitedLocation> trackUserLocation(User user) {
+		 return executor.submit(() -> {
+			VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
+			user.addToVisitedLocations(visitedLocation);
+			rewardsService.calculateRewards(user);
+			return visitedLocation;
+		});
 	}
 
 	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
@@ -149,5 +160,9 @@ public class TourGuideService {
 		LocalDateTime localDateTime = LocalDateTime.now().minusDays(new Random().nextInt(30));
 	    return Date.from(localDateTime.toInstant(ZoneOffset.UTC));
 	}
-	
+
+	@Override
+	public void destroy() throws Exception {
+
+	}
 }

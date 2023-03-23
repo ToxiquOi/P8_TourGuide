@@ -2,7 +2,9 @@ package tourGuide.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Service;
 
 import gpsUtil.GpsUtil;
@@ -14,13 +16,17 @@ import tourGuide.user.User;
 import tourGuide.user.UserReward;
 
 @Service
-public class RewardsService {
+public class RewardsService implements DisposableBean {
+
     private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
 
 	// proximity in miles
-    private int defaultProximityBuffer = 10;
+    private final int defaultProximityBuffer = 10;
 	private int proximityBuffer = defaultProximityBuffer;
-	private int attractionProximityRange = 200;
+	private final int attractionProximityRange = 200;
+
+
+	private final ThreadPoolExecutor executor = new ThreadPoolExecutor(10000, Integer.MAX_VALUE, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
 	private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
 	
@@ -37,19 +43,21 @@ public class RewardsService {
 		proximityBuffer = defaultProximityBuffer;
 	}
 	
-	public void calculateRewards(User user) {
-		List<VisitedLocation> userLocations = new ArrayList<>(user.getVisitedLocations());
-		List<Attraction> attractions = new ArrayList<>(gpsUtil.getAttractions());
-		
-		for(VisitedLocation visitedLocation : userLocations) {
-			for(Attraction attraction : attractions) {
-				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
-					if(nearAttraction(visitedLocation, attraction)) {
-						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+	public Future<?> calculateRewards(User user) {
+		return executor.submit(() -> {
+			List<VisitedLocation> userLocations = new ArrayList<>(user.getVisitedLocations());
+			List<Attraction> attractions = new ArrayList<>(gpsUtil.getAttractions());
+
+			for(VisitedLocation visitedLocation : userLocations) {
+				for(Attraction attraction : attractions) {
+					if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
+						if(nearAttraction(visitedLocation, attraction)) {
+							user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+						}
 					}
 				}
 			}
-		}
+		});
 	}
 	
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
@@ -74,8 +82,12 @@ public class RewardsService {
 				+ Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2));
 
 		double nauticalMiles = 60 * Math.toDegrees(angle);
-		double statuteMiles = STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
-		return statuteMiles;
+		return STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
 	}
 
+	@Override
+	public void destroy() throws Exception {
+		executor.shutdown();
+		while (!executor.isTerminated()) {}
+	}
 }
