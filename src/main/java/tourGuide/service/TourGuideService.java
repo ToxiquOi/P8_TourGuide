@@ -38,7 +38,7 @@ public class TourGuideService implements DisposableBean {
 
 	@Autowired
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
-		this.executorService = new TaskExecutorService();
+		this.executorService = new TaskExecutorService(1200, 3);
 		this.gpsUtil = gpsUtil;
 		this.rewardsService = rewardsService;
 		
@@ -97,7 +97,6 @@ public class TourGuideService implements DisposableBean {
 			VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
 			user.addToVisitedLocations(visitedLocation);
 			rewardsService.calculateRewards(user).get();
-			 System.out.println(Thread.currentThread().getName() + " Task DONE trackUserLocation for user: " + user.getUserName());
 			return visitedLocation;
 		});
 	}

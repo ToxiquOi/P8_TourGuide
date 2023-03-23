@@ -34,7 +34,7 @@ public class RewardsService implements DisposableBean {
 
 	@Autowired
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
-		this.executorService = new TaskExecutorService();
+		this.executorService = new TaskExecutorService(800, 3);
 		this.gpsUtil = gpsUtil;
 		this.rewardsCentral = rewardCentral;
 	}
@@ -61,7 +61,6 @@ public class RewardsService implements DisposableBean {
 					}
 				}
 			}
-			System.out.println(Thread.currentThread().getName() + " Task DONE calculateRewards for user: " + user.getUserName());
 		});
 	}
 	
