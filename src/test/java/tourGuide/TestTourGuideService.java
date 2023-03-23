@@ -6,7 +6,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import gpsUtil.GpsUtil;
-import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 
 import org.junit.jupiter.api.Assertions;
@@ -15,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import rewardCentral.RewardCentral;
 import tourGuide.helper.InternalTestHelper;
+import tourGuide.model.AttractionProximityModel;
 import tourGuide.service.RewardsService;
+import tourGuide.service.TaskExecutorService;
 import tourGuide.service.TourGuideService;
 import tourGuide.user.User;
 import tripPricer.Provider;
@@ -110,11 +111,11 @@ public class TestTourGuideService {
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user).get();
 		
-		List<Attraction> attractions = tourGuideService.getNearByAttractions(visitedLocation);
+		AttractionProximityModel attractionProximityModel = tourGuideService.getNearByAttractions(visitedLocation);
 		
 		tourGuideService.tracker.stopTracking();
 		
-		Assertions.assertEquals(5, attractions.size());
+		Assertions.assertEquals(5, attractionProximityModel.getAttractions().size());
 	}
 
 	@Test

@@ -10,6 +10,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import gpsUtil.GpsUtil;
@@ -17,6 +18,7 @@ import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
 import tourGuide.helper.InternalTestHelper;
+import tourGuide.model.AttractionProximityModel;
 import tourGuide.tracker.Tracker;
 import tourGuide.user.User;
 import tourGuide.user.UserReward;
@@ -27,15 +29,16 @@ import tripPricer.TripPricer;
 public class TourGuideService implements DisposableBean {
 	private Logger logger = LoggerFactory.getLogger(TourGuideService.class);
 
-	private final ThreadPoolExecutor executor = new ThreadPoolExecutor(10000, Integer.MAX_VALUE, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-
+	private final TaskExecutorService executorService;
 	private final GpsUtil gpsUtil;
 	private final RewardsService rewardsService;
 	private final TripPricer tripPricer = new TripPricer();
 	public final Tracker tracker;
 	boolean testMode = true;
-	
+
+	@Autowired
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
+		this.executorService = new TaskExecutorService();
 		this.gpsUtil = gpsUtil;
 		this.rewardsService = rewardsService;
 		
@@ -90,31 +93,35 @@ public class TourGuideService implements DisposableBean {
 	}
 	
 	public Future<VisitedLocation> trackUserLocation(User user) {
-		 return executor.submit(() -> {
+		 return executorService.submit(() -> {
 			VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
 			user.addToVisitedLocations(visitedLocation);
-			rewardsService.calculateRewards(user);
+			rewardsService.calculateRewards(user).get();
+			 System.out.println(Thread.currentThread().getName() + " Task DONE trackUserLocation for user: " + user.getUserName());
 			return visitedLocation;
 		});
 	}
 
-	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
+	public AttractionProximityModel getNearByAttractions(VisitedLocation visitedLocation) {
 		List<Attraction> attractions = gpsUtil.getAttractions();
-		attractions.sort((a1, a2) -> {
-			double distA1 = rewardsService.getDistance(visitedLocation.location, a1);
-			double distA2 = rewardsService.getDistance(visitedLocation.location, a2);
-			return Double.compare(distA1, distA2);
+		attractions.sort((a, b) -> {
+			double distA = rewardsService.getDistance(visitedLocation.location, a);
+			double distB = rewardsService.getDistance(visitedLocation.location, b);
+			logger.debug(String.format("getNearByAttractions distA:%s, distB:%s", distA, distB));
+			return Double.compare(distA, distB);
 		});
-		
-		return attractions.stream().limit(5).collect(Collectors.toList());
+		AttractionProximityModel attractionProximityModel = new AttractionProximityModel();
+		attractionProximityModel.setAttractions(attractions.stream()
+				.limit(5)
+				.map(att -> new AttractionProximityModel.AttractionRange(att, rewardsService.getDistance(att, visitedLocation.location)))
+				.collect(Collectors.toList())
+		);
+
+		return attractionProximityModel;
 	}
 	
 	private void addShutDownHook() {
-		Runtime.getRuntime().addShutdownHook(new Thread() { 
-		      public void run() {
-		        tracker.stopTracking();
-		      } 
-		    }); 
+		Runtime.getRuntime().addShutdownHook(new Thread(tracker::stopTracking));
 	}
 	
 	/**********************************************************************************
@@ -163,6 +170,6 @@ public class TourGuideService implements DisposableBean {
 
 	@Override
 	public void destroy() throws Exception {
-
+		executorService.destroy();
 	}
 }

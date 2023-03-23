@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import gpsUtil.GpsUtil;
@@ -18,6 +19,8 @@ import tourGuide.user.UserReward;
 @Service
 public class RewardsService implements DisposableBean {
 
+
+
     private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
 
 	// proximity in miles
@@ -25,12 +28,13 @@ public class RewardsService implements DisposableBean {
 	private int proximityBuffer = defaultProximityBuffer;
 	private final int attractionProximityRange = 200;
 
-
-	private final ThreadPoolExecutor executor = new ThreadPoolExecutor(10000, Integer.MAX_VALUE, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+	private final TaskExecutorService executorService;
 	private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
-	
+
+	@Autowired
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
+		this.executorService = new TaskExecutorService();
 		this.gpsUtil = gpsUtil;
 		this.rewardsCentral = rewardCentral;
 	}
@@ -44,19 +48,20 @@ public class RewardsService implements DisposableBean {
 	}
 	
 	public Future<?> calculateRewards(User user) {
-		return executor.submit(() -> {
+		return executorService.submit(() -> {
 			List<VisitedLocation> userLocations = new ArrayList<>(user.getVisitedLocations());
 			List<Attraction> attractions = new ArrayList<>(gpsUtil.getAttractions());
 
 			for(VisitedLocation visitedLocation : userLocations) {
 				for(Attraction attraction : attractions) {
-					if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
+					if(user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attraction.attractionName))) {
 						if(nearAttraction(visitedLocation, attraction)) {
 							user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
 						}
 					}
 				}
 			}
+			System.out.println(Thread.currentThread().getName() + " Task DONE calculateRewards for user: " + user.getUserName());
 		});
 	}
 	
@@ -87,7 +92,6 @@ public class RewardsService implements DisposableBean {
 
 	@Override
 	public void destroy() throws Exception {
-		executor.shutdown();
-		while (!executor.isTerminated()) {}
+		executorService.destroy();
 	}
 }
