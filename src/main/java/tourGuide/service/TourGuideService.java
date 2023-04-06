@@ -20,15 +20,14 @@ import gpsUtil.location.VisitedLocation;
 import tourGuide.helper.InternalTestHelper;
 import tourGuide.model.AttractionProximityModel;
 import tourGuide.tracker.Tracker;
-import tourGuide.user.User;
-import tourGuide.user.UserReward;
+import tourGuide.model.User;
+import tourGuide.model.UserReward;
 import tripPricer.Provider;
 import tripPricer.TripPricer;
 
 @Service
 public class TourGuideService implements DisposableBean {
 	private Logger logger = LoggerFactory.getLogger(TourGuideService.class);
-
 	private final TaskExecutorService executorService;
 	private final GpsUtil gpsUtil;
 	private final RewardsService rewardsService;

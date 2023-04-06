@@ -16,9 +16,8 @@ import rewardCentral.RewardCentral;
 import tourGuide.helper.InternalTestHelper;
 import tourGuide.model.AttractionProximityModel;
 import tourGuide.service.RewardsService;
-import tourGuide.service.TaskExecutorService;
 import tourGuide.service.TourGuideService;
-import tourGuide.user.User;
+import tourGuide.model.User;
 import tripPricer.Provider;
 
 @SpringBootTest

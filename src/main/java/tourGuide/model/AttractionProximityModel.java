@@ -1,7 +1,6 @@
 package tourGuide.model;
 
 import gpsUtil.location.Attraction;
-import tourGuide.user.User;
 
 import java.util.ArrayList;
 import java.util.List;
