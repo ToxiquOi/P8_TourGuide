@@ -2,7 +2,6 @@ package tourGuide;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 
 import gpsUtil.GpsUtil;
@@ -30,7 +29,7 @@ public class TestRewardsService {
 
 	@Test
 	@Order(0)
-	public void userGetRewards() throws ExecutionException, InterruptedException, TimeoutException {
+	void userGetRewards() throws ExecutionException, InterruptedException {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 
@@ -49,7 +48,7 @@ public class TestRewardsService {
 	
 	@Test
 	@Order(1)
-	public void isWithinAttractionProximity() {
+	void isWithinAttractionProximity() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		Attraction attraction = gpsUtil.getAttractions().get(0);
@@ -58,7 +57,7 @@ public class TestRewardsService {
 
 	@Test
 	@Order(2)
-	public void nearAllAttractions() {
+	void nearAllAttractions() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		rewardsService.setProximityBuffer(Integer.MAX_VALUE);

@@ -33,5 +33,13 @@ public class AttractionProximityModel {
             this.attraction = attraction;
             this.distance = distance;
         }
+
+        public Attraction getAttraction() {
+            return attraction;
+        }
+
+        public double getDistance() {
+            return distance;
+        }
     }
 }
