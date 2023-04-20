@@ -6,6 +6,7 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'jacoco'
 apply plugin: 'org.sonarqube'
 apply plugin: "io.swagger.core.v3.swagger-gradle-plugin"
+apply plugin: 'maven-publish'
 
 group 'tourGuide'
 version '1.0-SNAPSHOT'
@@ -90,6 +91,21 @@ jacocoTestCoverageVerification {
                 counter = 'LINE'
                 value = 'COVEREDRATIO'
                 minimum = 0.5
+            }
+        }
+    }
+}
+
+
+publishing {
+
+    repositories {
+        maven {
+            name = "TourGuide"
+            url = "https://maven.pkg.github.com/ToxiquOi/P8_TourGuide"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }

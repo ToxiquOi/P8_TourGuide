@@ -3,8 +3,6 @@ on:
   push:
     branches:
       - main
-      - develop
-      - feature/*
       - release/*
   pull_request:
     types: [opened, synchronize, reopened]
@@ -38,3 +36,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew build sonar -Dsonar.projectKey=ToxiquOi_P8_TourGuide -Dsonar.organization=toxiquoi
+      - name: Publish to GitHub Packages
+        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+        with:
+          arguments: publish
+        env:
+          USERNAME: ${{ github.actor }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
