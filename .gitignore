@@ -12,3 +12,26 @@ gradle-app.setting
 
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
+/out/production/classes/tourGuide/Application.class
+/out/production/resources/application.properties
+/.idea/compiler.xml
+/.idea/gradle.xml
+/out/production/classes/tourGuide/helper/InternalTestHelper.class
+/.idea/jarRepositories.xml
+/.idea/jpa-buddy.xml
+/.idea/kotlinc.xml
+/.idea/misc.xml
+/out/production/classes/tourGuide/service/RewardsService.class
+/out/test/classes/tourGuide/TestPerformance.class
+/out/test/classes/tourGuide/TestRewardsService.class
+/out/test/classes/tourGuide/TestTourGuideService.class
+/out/production/classes/tourGuide/TourGuideController.class
+/out/production/classes/tourGuide/TourGuideModule.class
+/out/production/classes/tourGuide/service/TourGuideService$1.class
+/out/production/classes/tourGuide/service/TourGuideService.class
+/out/production/classes/tourGuide/tracker/Tracker.class
+/.idea/uiDesigner.xml
+/out/production/classes/tourGuide/user/User.class
+/out/production/classes/tourGuide/user/UserPreferences.class
+/out/production/classes/tourGuide/user/UserReward.class
+/.idea/vcs.xml
