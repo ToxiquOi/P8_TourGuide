@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - release/*
+      - develop
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -39,7 +40,11 @@ jobs:
       - name: Deploy artifact
         uses: actions/upload-artifact@v3
         with:
-          path: build/libs/tourGuide-*.jar
+          name: TourGuideArtifacts
+          path: | 
+            build/libs/tourGuide-*.jar
+            build/reports/
+            build/jacocoHtml/
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
