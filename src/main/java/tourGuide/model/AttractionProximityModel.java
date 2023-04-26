@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AttractionProximityModel {
-    private User user;
+    private UserReduce user;
     private List<AttractionRange> attractions = new ArrayList<>();
 
     public List<AttractionRange> getAttractions() {
@@ -17,12 +17,12 @@ public class AttractionProximityModel {
         this.attractions = attractions;
     }
 
-    public User getUser() {
+    public UserReduce getUser() {
         return user;
     }
 
     public void setUser(User user) {
-        this.user = user;
+        this.user = new UserReduce(user);
     }
 
     public static class AttractionRange {

@@ -56,10 +56,10 @@ public class TourGuideController {
     }
     
     @GetMapping("/getAllCurrentLocations")
-    public String getAllCurrentLocations() {
-        Map<UUID, Location> map = new HashMap<>();
-        tourGuideService.getAllUsers().forEach(u -> map.put(u.getUserId(),u.getLastVisitedLocation().location));
-    	return JsonStream.serialize(map);
+    public ResponseEntity<Map<String, Location>> getAllCurrentLocations() {
+        Map<String, Location> map = new HashMap<>();
+        tourGuideService.getAllUsers().forEach(u -> map.put(u.getUserName(),u.getLastVisitedLocation().location));
+    	return ResponseEntity.ok(map);
     }
     
     @GetMapping("/getTripDeals")

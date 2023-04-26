@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import com.jsoniter.annotation.JsonIgnore;
 import gpsUtil.location.VisitedLocation;
 import tripPricer.Provider;
 

@@ -2,5 +2,7 @@
 
 # P8_TourGuide
 
-Lien utile:
+Projet utilisant les github actions pour compiler, exécuter les tests unitaires et déployer ses artefacts.
+
+IHM de tests:
 http://localhost:8080/swagger-ui/index.html
